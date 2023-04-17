@@ -46,6 +46,8 @@ struct SignInView : View {
 struct ShoppingListView: View {
     
    @StateObject var shoppingListVM = ShoppingListVM()
+    @State var showingAddAlert = false
+    @State var newItemName = ""
     
     var body: some View {
         VStack {
@@ -54,8 +56,25 @@ struct ShoppingListView: View {
                 ForEach(shoppingListVM.items) { item in
                     RowView(item: item, vm: shoppingListVM)
                 }
+                .onDelete() { IndexSet in
+                    for index in IndexSet {
+                        shoppingListVM.delete(index : index)
+                    }
+                    
+                }
             }
-            
+            Button(action: {
+                showingAddAlert = true
+            }) {
+                Text("Add")
+            }
+            .alert("Lägg till", isPresented: $showingAddAlert) {
+                TextField("Lägg till",text: $newItemName)
+                Button("Add", action: {
+                    shoppingListVM.saveToFirestore(itemName: newItemName)
+                        newItemName = ""
+                })
+            }
         }.onAppear(){
             shoppingListVM.listenToFirestore()
         }

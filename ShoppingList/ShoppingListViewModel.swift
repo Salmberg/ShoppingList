@@ -10,26 +10,49 @@ import Firebase
 
 class ShoppingListVM : ObservableObject {
     let db = Firestore.firestore()
+    let auth = Auth.auth()
     
     @Published var items = [Item]()
     
-    func toggle(item: Item) {
+    func delete(index : Int) {
+        guard let user = auth.currentUser else {return}
+        let itemsRef = db.collection("users").document(user.uid).collection("items")
+        
+        
+        let item = items[index]
         if let id = item.id {
-            db.collection("items").document(id).updateData(["done" : !item.done])
+            itemsRef.document(id).delete()
+        }
+    }
+    
+    func toggle(item: Item) {
+        
+        guard let user = auth.currentUser else {return}
+        let itemsRef = db.collection("users").document(user.uid).collection("items")
+        
+        if let id = item.id {
+            itemsRef.document(id).updateData(["done" : !item.done])
         }
     }
     
     func saveToFirestore(itemName: String) {
+        
+        
+        guard let user = auth.currentUser else {return}
+        let itemsRef = db.collection("users").document(user.uid).collection("items")
+        
         let item = Item(name: itemName)
         do {
-            try db.collection("items").addDocument(from: item)
+            try itemsRef.addDocument(from: item)
         } catch {
             print("Error to save")
         }
     }
     func listenToFirestore(){
+        guard let user = auth.currentUser else {return}
+        let itemsRef = db.collection("users").document(user.uid).collection("items")
         
-        db.collection("items").addSnapshotListener() {
+        itemsRef.addSnapshotListener() {
             Snapshot, err in
             
             guard let snapshot = Snapshot else {return}
