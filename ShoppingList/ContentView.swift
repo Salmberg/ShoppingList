@@ -6,18 +6,42 @@
 //
 
 import SwiftUI
+import Firebase
 
 struct ContentView: View {
+    
+   @StateObject var shoppingListVM = ShoppingListVM()
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+          
+            List {
+                ForEach(shoppingListVM.items) { item in
+                    HStack {
+                        Text(item.name)
+                        Spacer()
+                        Button(action: {
+                            shoppingListVM.toggle(item: item)
+                            
+                        }) {
+                            Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
+                        }
+                        
+                    }
+                    
+                }
+            }
+            
+            
+        }.onAppear(){
+            shoppingListVM.listenToFirestore()
         }
-        .padding()
     }
-}
+    
+ 
+        
+    }
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
